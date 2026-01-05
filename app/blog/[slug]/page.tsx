@@ -197,7 +197,8 @@ export default function BlogPostPage() {
     }
 
     setLoading(false)
-  }, [params.slug, router, t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.slug, router])
 
   if (loading) {
     return (

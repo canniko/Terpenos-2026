@@ -24,16 +24,27 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [language, setLanguageState] = useState<Language>(defaultLanguage)
 
   useEffect(() => {
-    // Try to get language from localStorage on client side
-    const savedLanguage = localStorage.getItem("language") as Language
-    if (savedLanguage && Object.keys(translations).includes(savedLanguage)) {
-      setLanguageState(savedLanguage)
-    } else {
+    if (typeof window === 'undefined') return
+    
+    try {
+      // Try to get language from localStorage on client side
+      const savedLanguage = localStorage.getItem("language") as Language
+      if (savedLanguage && Object.keys(translations).includes(savedLanguage)) {
+        setLanguageState(savedLanguage)
+        return
+      }
+    } catch (error) {
+      console.error("Error reading language from localStorage:", error)
+    }
+    
+    try {
       // Try to detect browser language
       const browserLang = navigator.language.split("-")[0] as Language
       if (Object.keys(translations).includes(browserLang)) {
         setLanguageState(browserLang)
       }
+    } catch (error) {
+      console.error("Error detecting browser language:", error)
     }
   }, [])
 

@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const totalAmount = items.reduce((sum: number, item: any) => sum + (item.product.price * item.quantity), 0);
 
     // Get the origin for absolute URLs
-    const origin = request.headers.get('origin') || 'http://localhost:3000';
+    const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({

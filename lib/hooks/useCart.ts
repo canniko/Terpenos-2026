@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Product, CartItem, Cart } from "@/lib/types"
 
 const CART_STORAGE_KEY = "terpenos-cart"
@@ -11,22 +11,40 @@ export const useCart = () => {
     total: 0,
     itemCount: 0
   })
+  const isInitialized = useRef(false)
 
   // Load cart from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem(CART_STORAGE_KEY)
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart))
-      } catch (error) {
-        console.error("Error loading cart from localStorage:", error)
+    if (typeof window === 'undefined') return
+    
+    try {
+      const savedCart = localStorage.getItem(CART_STORAGE_KEY)
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart)
+        // Validate the parsed cart structure
+        if (parsed && typeof parsed === 'object' && Array.isArray(parsed.items)) {
+          setCart(parsed)
+        }
       }
+      isInitialized.current = true
+    } catch (error) {
+      console.error("Error loading cart from localStorage:", error)
+      // Clear invalid data
+      localStorage.removeItem(CART_STORAGE_KEY)
+      isInitialized.current = true
     }
   }, [])
 
-  // Save cart to localStorage whenever it changes
+  // Save cart to localStorage whenever it changes (but skip initial empty state)
   useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart))
+    if (typeof window === 'undefined') return
+    if (!isInitialized.current) return // Don't save until we've loaded from localStorage
+    
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart))
+    } catch (error) {
+      console.error("Error saving cart to localStorage:", error)
+    }
   }, [cart])
 
   const addToCart = (product: Product, quantity: number = 1) => {
